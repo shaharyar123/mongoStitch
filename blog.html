@@ -1,0 +1,42 @@
+<html>
+<head>
+    <script src="https://s3.amazonaws.com/stitch-sdks/js/library/stable/stitch.min.js"></script>
+    <script>
+        const client = new stitch.StitchClient('blog_comments-qgilk');
+        const db = client.service('mongodb', 'mongodb-atlas').db('blog');
+
+        function displayComments() {
+            db.collection('comments').find({}).then(docs => {
+                console.log('docs ',docs)
+                var html = docs.map(c => '<div>' + c.comment + '</div>').join('');
+                document.getElementById('comments').innerHTML = html;
+            });
+        }
+
+        function displayCommentsOnLoad() {
+            client.login().then(displayComments)
+        }
+
+        function addComment() {
+            var c = document.getElementById('new_comment');
+            db.collection('comments').insert({owner_id : client.authedId(),
+                        comment: c.value})
+                    .then(displayComments);
+            c.value = '';
+        }
+
+    </script>
+</head>
+<body onload="displayCommentsOnLoad()">
+<h3>Aspirational blog post</h3>
+<div id="content">
+    I like to write about technology, because I want to get
+    on the front page of hacker news (in a good way).
+</div>
+<hr>
+<div id="comments"></div>
+<hr>
+Add comment:
+<input id="new_comment"><input type="submit" onClick="addComment()">
+</body>
+</html>
